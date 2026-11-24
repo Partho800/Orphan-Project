@@ -1,0 +1,1647 @@
+/**
+ * Orphan Project Multi-Step Form CSS
+ * Modern, clean, and fully responsive
+ * Includes authentic PDF header with SAP & HASENE logos
+ * Typography: Poppins
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&display=swap');
+
+:root {
+    --opf-primary: #0E84C7;
+    --opf-primary-dark: #0369a1;
+    --opf-primary-light: #e0f2fe;
+    --opf-secondary: #03B1AA;
+    --opf-secondary-dark: #028e88;
+    --opf-secondary-light: #e6f7f6;
+    --opf-accent: #0284c7;
+    --opf-text-main: #1e293b;
+    --opf-text-muted: #64748b;
+    --opf-border: #cbd5e1;
+    --opf-border-focus: #0E84C7;
+    --opf-bg-light: #f8fafc;
+    --opf-card-bg: #ffffff;
+    --opf-danger: #ef4444;
+    --opf-success: #10b981;
+    --opf-radius: 12px;
+    --opf-shadow: 0 4px 25px -3px rgba(0, 0, 0, 0.09);
+    --opf-font: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.opf-container {
+    max-width: 920px;
+    margin: 24px auto;
+    background: var(--opf-card-bg);
+    border-radius: var(--opf-radius);
+    box-shadow: var(--opf-shadow);
+    border: 1px solid #e2e8f0;
+    font-family: var(--opf-font) !important;
+    color: var(--opf-text-main);
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+.opf-container * {
+    box-sizing: border-box;
+    font-family: var(--opf-font);
+}
+
+/* =========================================================
+   Top Header Banner (Authentic PDF layout with 2 logos & center text)
+   ========================================================= */
+.opf-header-top {
+    background: #ffffff;
+    padding: 16px 24px 14px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.opf-logos-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.opf-logo-col {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+}
+
+.opf-header-logo {
+    display: block !important;
+    height: 64px !important;
+    max-height: 64px !important;
+    width: auto !important;
+    max-width: 130px !important;
+    object-fit: contain !important;
+    user-select: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transition: all 0.2s ease;
+}
+
+.opf-project-title-col {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0 4px;
+}
+
+.opf-project-main-title {
+    margin: 0;
+    font-family: "Times New Roman", Times, Georgia, "Liberation Serif", serif !important;
+    font-size: 32px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 1.5px;
+    color: #000000;
+    text-transform: uppercase;
+    line-height: 1.15;
+}
+
+/* =========================================================
+   Wizard Step Navigation Bar (Hidden)
+   ========================================================= */
+.opf-steps-header {
+    display: none !important;
+}
+
+.opf-steps-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 0 8px;
+}
+
+.opf-step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+    cursor: default;
+    transition: all 0.3s ease;
+    opacity: 0.75;
+}
+
+.opf-step-item.active,
+.opf-step-item.completed {
+    opacity: 1;
+}
+
+.opf-step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.opf-step-item.active .opf-step-circle {
+    background: #ffffff;
+    color: var(--opf-primary);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.opf-step-item.completed .opf-step-circle {
+    background: var(--opf-success);
+    border-color: var(--opf-success);
+    color: #ffffff;
+}
+
+.opf-step-check {
+    display: none;
+}
+
+.opf-step-item.completed .opf-step-num {
+    display: none;
+}
+
+.opf-step-item.completed .opf-step-check {
+    display: inline;
+    font-weight: 900;
+}
+
+.opf-step-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.opf-step-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #cbd5e1;
+}
+
+.opf-step-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.opf-step-connector {
+    flex: 1;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 12px;
+    position: relative;
+    top: -2px;
+}
+
+.opf-progress-track {
+    margin-top: 14px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.opf-progress-bar {
+    height: 100%;
+    background: #38bdf8;
+    transition: width 0.4s ease;
+}
+
+/* =========================================================
+   Form Body & Step Panes
+   ========================================================= */
+.opf-form {
+    padding: 28px;
+}
+
+.opf-step-pane {
+    display: none;
+    animation: opfFadeIn 0.35s ease forwards;
+}
+
+.opf-step-pane.active {
+    display: block;
+}
+
+@keyframes opfFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.opf-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #f1f5f9;
+    text-align: left;
+}
+
+.opf-pane-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--opf-secondary-light);
+    color: var(--opf-secondary);
+    flex-shrink: 0;
+    line-height: 1;
+    transform: translateY(-7px);
+}
+
+.opf-pane-icon svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+    margin: auto;
+}
+
+.opf-pane-header-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.opf-section-title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--opf-primary-dark);
+    line-height: 1.25;
+}
+
+.opf-section-desc {
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: var(--opf-text-muted);
+    line-height: 1.3;
+}
+
+/* Grids & Cards */
+.opf-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.opf-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.opf-field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.opf-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.opf-label.required::after {
+    content: " *";
+    color: var(--opf-danger);
+    font-weight: bold;
+}
+
+.opf-input,
+.opf-select,
+.opf-btn,
+.opf-container button,
+.opf-container input,
+.opf-container select,
+.opf-container textarea {
+    font-family: var(--opf-font) !important;
+}
+
+.opf-input,
+.opf-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--opf-border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+    color: var(--opf-text-main);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.opf-input:focus,
+.opf-select:focus {
+    border-color: var(--opf-border-focus);
+    box-shadow: 0 0 0 3px rgba(13, 110, 110, 0.15);
+}
+
+.opf-input.has-error {
+    border-color: var(--opf-danger) !important;
+    background-color: #fef2f2 !important;
+}
+
+.opf-err-msg {
+    display: none;
+    font-size: 12px;
+    color: var(--opf-danger);
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.opf-input.has-error + .opf-err-msg,
+.opf-input.has-error ~ .opf-err-msg {
+    display: block;
+}
+
+.opf-hint {
+    font-size: 11px;
+    color: var(--opf-text-muted);
+    margin-top: 4px;
+}
+
+/* Phone input with +880 prefix */
+.opf-phone-wrapper,
+.opf-phone-input-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    border: 1.5px solid var(--opf-border) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease;
+}
+
+.opf-phone-wrapper:focus-within,
+.opf-phone-input-wrap:focus-within {
+    border-color: var(--opf-border-focus) !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 110, 0.15) !important;
+}
+
+.opf-phone-prefix {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #f1f5f9 !important;
+    padding: 0 14px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: #475569 !important;
+    border-right: 1.5px solid var(--opf-border) !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    user-select: none !important;
+}
+
+.opf-phone-input {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 10px 14px !important;
+}
+
+/* Radio & Checkbox styling */
+.opf-radio-group {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    min-height: 42px;
+}
+
+.opf-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.opf-radio,
+.opf-checkbox {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--opf-primary);
+    cursor: pointer;
+}
+
+/* Sub-card & Section Cards */
+.opf-sub-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 18px;
+}
+
+.opf-sub-card-title {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.opf-card-section {
+    background: #ffffff;
+    border: 1.5px solid #d2eae8;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.opf-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+.opf-card-badge {
+    background: var(--opf-secondary);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(3, 177, 170, 0.25);
+    flex-shrink: 0;
+}
+
+.opf-card-badge svg {
+    display: block;
+    width: 15px;
+    height: 15px;
+    stroke: #ffffff;
+}
+
+.opf-card-heading h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.opf-guardian-note {
+    display: block;
+    color: #0369a1;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.opf-toggle-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+}
+
+.opf-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #334155;
+}
+
+.opf-toggle-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--opf-primary);
+}
+
+.opf-flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.opf-flex-align {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.opf-same-addr-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--opf-secondary-dark);
+    cursor: pointer;
+    background: var(--opf-secondary-light);
+    border: 1px solid #bceae6;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+/* =========================================================
+   Evaluation Matrix Table
+   ========================================================= */
+.opf-table-responsive {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
+.opf-eval-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.opf-eval-table th,
+.opf-eval-table td {
+    border: 1px solid #cbd5e1;
+    padding: 10px 12px;
+}
+
+.opf-eval-table thead th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    text-align: center;
+}
+
+.opf-eval-table th.opf-th-criteria {
+    text-align: left;
+    width: 40%;
+}
+
+.opf-eval-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.opf-td-title {
+    font-size: 13px;
+    color: #1e293b;
+}
+
+.opf-td-center {
+    text-align: center;
+}
+
+.opf-cell-radio {
+    display: inline-flex;
+    cursor: pointer;
+    padding: 6px;
+}
+
+.opf-cell-radio input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--opf-primary);
+    cursor: pointer;
+}
+
+.opf-note-text {
+    font-size: 12px;
+    color: #64748b;
+    margin: 4px 0 0;
+}
+
+/* =========================================================
+   Signature & Declaration
+   ========================================================= */
+.opf-sig-container {
+    margin-top: 16px;
+    margin-bottom: 20px;
+}
+
+.opf-canvas-wrapper {
+    border: 1.5px dashed #94a3b8;
+    border-radius: 8px;
+    background: #fafafa;
+    display: inline-block;
+    max-width: 100%;
+    position: relative;
+}
+
+.opf-sig-canvas {
+    display: block;
+    background: #ffffff;
+    cursor: crosshair;
+    border-radius: 8px 8px 0 0;
+}
+
+.opf-canvas-tools {
+    display: flex;
+    justify-content: flex-end;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 8px 8px;
+}
+
+.opf-btn-text {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+.opf-btn-text:hover {
+    text-decoration: underline;
+}
+
+.opf-declaration-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 18px;
+}
+
+.opf-declaration-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+/* =========================================================
+   Actions & Buttons
+   ========================================================= */
+.opf-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.opf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.opf-btn-prev {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.opf-btn-prev:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.opf-btn-next {
+    background: var(--opf-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(13, 110, 110, 0.25);
+}
+
+.opf-btn-next:hover {
+    background: var(--opf-primary-dark);
+}
+
+.opf-btn-submit {
+    background: #16a34a;
+    color: #ffffff;
+    padding: 12px 28px;
+    font-size: 15px;
+    box-shadow: 0 2px 10px rgba(22, 163, 74, 0.3);
+}
+
+.opf-btn-submit:hover {
+    background: #15803d;
+}
+
+/* Spinner */
+.opf-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: opfSpin 0.7s infinite linear;
+    display: inline-block;
+}
+
+@keyframes opfSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Alert Container */
+.opf-alert-box {
+    margin: 18px 28px 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.opf-alert-box.opf-alert-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.opf-alert-box.opf-alert-success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+/* =========================================================
+   Success Modal Overlay
+   ========================================================= */
+.opf-success-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.96);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    border-radius: var(--opf-radius);
+    animation: opfFadeIn 0.3s ease;
+}
+
+.opf-success-card {
+    text-align: center;
+    max-width: 480px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 36px 28px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.opf-success-icon-wrap {
+    width: 68px;
+    height: 68px;
+    background: #ecfdf5;
+    color: #10b981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 36px;
+    box-shadow: 0 0 0 8px #f0fdf4;
+}
+
+.opf-success-heading {
+    margin: 0 0 10px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.opf-success-message {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0 0 20px;
+    line-height: 1.5;
+}
+
+.opf-app-id-pill {
+    background: var(--opf-primary-light);
+    color: var(--opf-primary-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 14px;
+    margin-bottom: 26px;
+    border: 1px solid #99f6e4;
+}
+
+.opf-success-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.opf-btn-print {
+    background: var(--opf-primary);
+    color: #ffffff;
+}
+
+.opf-btn-print:hover {
+    background: var(--opf-primary-dark);
+}
+
+.opf-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.opf-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+@media (max-width: 768px) {
+    .opf-container {
+        margin: 14px auto !important;
+    }
+
+    .opf-header-top {
+        padding: 14px 14px 12px !important;
+    }
+
+    .opf-header-logo {
+        height: 48px !important;
+        max-height: 48px !important;
+        max-width: 85px !important;
+        width: auto !important;
+    }
+
+    .opf-project-main-title {
+        font-size: 20px !important;
+        letter-spacing: 0.8px !important;
+    }
+
+    .opf-grid-2,
+    .opf-grid-3 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .opf-form {
+        padding: 18px 14px;
+    }
+
+    .opf-actions-bar {
+        flex-direction: column-reverse;
+        gap: 12px;
+    }
+
+    .opf-btn {
+        width: 100%;
+    }
+
+    .opf-canvas-wrapper,
+    .opf-sig-canvas {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 540px) {
+    .opf-container {
+        margin: 8px auto !important;
+        border-radius: 8px !important;
+    }
+
+    .opf-header-top {
+        padding: 10px 10px 8px !important;
+    }
+
+    .opf-logos-wrap {
+        gap: 6px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .opf-logo-col {
+        flex: 0 0 auto !important;
+    }
+
+    .opf-project-title-col {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+        min-width: 0 !important;
+        padding: 0 4px !important;
+    }
+
+    .opf-header-logo {
+        height: 38px !important;
+        max-height: 38px !important;
+        max-width: 55px !important;
+        width: auto !important;
+    }
+
+    .opf-project-main-title {
+        font-size: 15px !important;
+        letter-spacing: 0.4px !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important;
+    }
+
+    .opf-form {
+        padding: 14px 10px;
+    }
+
+    .opf-pane-header {
+        gap: 10px;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+    }
+
+    .opf-pane-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        transform: translateY(-2px);
+    }
+
+    .opf-pane-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .opf-section-title {
+        font-size: 16px;
+    }
+
+    .opf-section-desc {
+        font-size: 11.5px;
+    }
+
+    .opf-card-section {
+        padding: 12px 10px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+    }
+
+    .opf-card-heading {
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .opf-card-heading h4 {
+        font-size: 14px;
+    }
+
+    .opf-card-badge {
+        width: 24px;
+        height: 24px;
+        border-radius: 5px;
+    }
+
+    .opf-card-badge svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .opf-input,
+    .opf-select {
+        padding: 9px 10px;
+        font-size: 13.5px;
+    }
+
+    .opf-phone-prefix {
+        padding: 9px 10px;
+        font-size: 13px;
+    }
+
+    .opf-flex-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .opf-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .opf-btn-submit {
+        padding: 11px 22px;
+        font-size: 14.5px;
+    }
+}
+
+@media (max-width: 380px) {
+    .opf-header-top {
+        padding: 8px 6px !important;
+    }
+
+    .opf-logos-wrap {
+        gap: 4px !important;
+    }
+
+    .opf-header-logo {
+        height: 30px !important;
+        max-height: 30px !important;
+        max-width: 44px !important;
+        width: auto !important;
+    }
+
+    .opf-project-main-title {
+        font-size: 13px !important;
+        letter-spacing: 0 !important;
+    }
+
+    .opf-section-title {
+        font-size: 14.5px;
+    }
+
+    .opf-form {
+        padding: 12px 8px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .opf-container,
+    .opf-container * {
+        visibility: visible;
+    }
+    .opf-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+    }
+    .opf-actions-bar,
+    .opf-steps-nav,
+    .opf-progress-track,
+    .opf-success-actions {
+        display: none !important;
+    }
+    .opf-step-pane {
+        display: block !important;
+    }
+}
+
+/* =========================================================
+   Mode Switcher Navigation Bar (Online, Download, Upload)
+   ========================================================= */
+.opf-action-modes-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+
+.opf-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    line-height: 1.4;
+}
+
+.opf-mode-btn:hover {
+    color: var(--opf-primary);
+    border-color: var(--opf-primary);
+    background: var(--opf-primary-light);
+}
+
+.opf-mode-btn.active {
+    background: var(--opf-primary);
+    color: #ffffff;
+    border-color: var(--opf-primary);
+    box-shadow: 0 3px 10px rgba(14, 132, 199, 0.28);
+}
+
+.opf-mode-btn-download {
+    background: #ffffff;
+    color: #16a34a;
+    border-color: #86efac;
+}
+
+.opf-mode-btn-download:hover {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #4ade80;
+}
+
+/* Mode Container */
+.opf-mode-content {
+    transition: opacity 0.2s ease;
+}
+
+/* =========================================================
+   Upload Form Mode Styling
+   ========================================================= */
+.opf-upload-form {
+    padding: 30px 40px;
+}
+
+/* Applicant Type Selector Cards */
+.opf-type-selector-wrap {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.opf-type-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.opf-type-option input[type="radio"] {
+    display: none;
+}
+
+.opf-type-radio-bullet {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.opf-type-radio-bullet::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--opf-primary);
+    transform: scale(0);
+    transition: transform 0.2s ease;
+}
+
+.opf-type-option.active {
+    border-color: var(--opf-primary);
+    background: #f0f9ff;
+    box-shadow: 0 2px 8px rgba(14, 132, 199, 0.12);
+}
+
+.opf-type-option.active .opf-type-radio-bullet {
+    border-color: var(--opf-primary);
+}
+
+.opf-type-option.active .opf-type-radio-bullet::after {
+    transform: scale(1);
+}
+
+.opf-type-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.opf-type-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.opf-type-desc {
+    font-size: 11.5px;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+/* Notice banner inside upload */
+.opf-upload-notice {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1e40af;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.opf-upload-notice svg {
+    flex-shrink: 0;
+    color: #2563eb;
+}
+
+/* Dropzone Area */
+.opf-dropzone-area {
+    position: relative;
+    border: 2px dashed #93c5fd;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.opf-dropzone-area:hover,
+.opf-dropzone-area.dragover {
+    border-color: var(--opf-primary);
+    background: #f0f9ff;
+}
+
+.opf-file-hidden-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.opf-dropzone-placeholder {
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.opf-dropzone-icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.opf-dropzone-main-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+
+.opf-dropzone-sub-text {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Selected File Card */
+.opf-file-selected-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 18px;
+    max-width: 460px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.opf-file-info-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.opf-file-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    background: #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.opf-file-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    overflow: hidden;
+}
+
+.opf-selected-file-name {
+    font-size: 13.5px;
+    color: #0f172a;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+.opf-selected-file-size {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.opf-btn-clear-file {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+}
+
+.opf-btn-clear-file:hover {
+    color: #ef4444;
+}
+
+/* Upload Success View */
+.opf-upload-success-view {
+    padding: 50px 30px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: opfFadeIn 0.3s ease-out;
+}
+
+@media screen and (max-width: 640px) {
+    .opf-action-modes-bar {
+        display: flex;
+        flex-direction: row;
+        justify-content: stretch;
+        padding: 8px;
+        gap: 6px;
+    }
+    .opf-mode-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 8px 4px;
+        font-size: 11.5px;
+        gap: 4px;
+        justify-content: center;
+        text-align: center;
+    }
+    .opf-mode-btn span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .opf-mode-btn svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+    .opf-upload-form {
+        padding: 20px 14px;
+    }
+    .opf-type-selector-wrap {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .opf-action-modes-bar {
+        flex-direction: column;
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    .opf-mode-btn {
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 13px;
+        gap: 8px;
+    }
+    .opf-mode-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* =========================================================
+   Centered Custom Alert / Error Modal Dialog
+   ========================================================= */
+.opf-modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 9999999 !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+.opf-modal-backdrop.show {
+    display: flex !important;
+    animation: opfBackdropFade 0.2s ease-out;
+}
+
+.opf-modal-dialog {
+    position: relative !important;
+    background: #ffffff !important;
+    border-radius: 18px !important;
+    max-width: 440px !important;
+    width: 100% !important;
+    margin: auto !important;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+    padding: 34px 28px 26px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+@keyframes opfModalPop {
+    from {
+        transform: scale(0.94) translateY(8px);
+    }
+    to {
+        transform: scale(1) translateY(0);
+    }
+}
+
+.opf-modal-close-btn {
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+}
+
+.opf-modal-close-btn:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    transform: rotate(90deg);
+}
+
+.opf-modal-icon-wrap {
+    width: 68px !important;
+    height: 68px !important;
+    border-radius: 50% !important;
+    margin: 0 auto 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #FEF2F2 !important;
+    border: 5px solid #FEE2E2 !important;
+}
+
+.opf-modal-icon-wrap.opf-modal-icon-warning {
+    background: #FFFBEB !important;
+    border-color: #FEF3C7 !important;
+}
+
+.opf-modal-icon-wrap.opf-modal-icon-success {
+    background: #ECFDF5 !important;
+    border-color: #D1FAE5 !important;
+}
+
+.opf-modal-title {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 0 10px !important;
+    line-height: 1.3 !important;
+}
+
+.opf-modal-message {
+    font-size: 14.5px !important;
+    color: #475569 !important;
+    line-height: 1.55 !important;
+    margin: 0 0 24px !important;
+    word-break: break-word !important;
+}
+
+.opf-modal-actions {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+.opf-modal-btn-ok {
+    width: 100% !important;
+    padding: 12px 24px !important;
+    background: #0E84C7 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(14, 132, 199, 0.25) !important;
+}
+
+.opf-modal-btn-ok:hover {
+    background: #0369a1 !important;
+    box-shadow: 0 6px 16px rgba(14, 132, 199, 0.35) !important;
+    transform: translateY(-1px);
+}
+
+@media screen and (max-width: 480px) {
+    .opf-modal-backdrop {
+        padding: 16px !important;
+    }
+    .opf-modal-dialog {
+        padding: 26px 18px 22px !important;
+        border-radius: 16px !important;
+        max-width: 92% !important;
+        margin: auto !important;
+    }
+    .opf-modal-title {
+        font-size: 18px !important;
+    }
+    .opf-modal-message {
+        font-size: 13.5px !important;
+        margin-bottom: 20px !important;
+    }
+}
