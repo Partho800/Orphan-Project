@@ -18,16 +18,26 @@
         if (!form) return;
 
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
 
         // Elements
+        const shell = container.closest('.opf-wizard-shell') || container;
+        const appModeInput = container.querySelector('#opf-application-mode');
+        const oldIdWrap = container.querySelector('#opf-old-id-field-wrap');
+        const oldIdInput = container.querySelector('#opf-old-application-id');
+        const oldIdErr = container.querySelector('#opf-old-id-err');
         const stepPanes = container.querySelectorAll('.opf-step-pane');
         const stepItems = container.querySelectorAll('.opf-step-item');
+        const sideStepItems = shell.querySelectorAll('.opf-side-step-item');
         const progressBar = container.querySelector('.opf-progress-bar');
         const alertBox = container.querySelector('.opf-alert-box');
         const successOverlay = container.querySelector('.opf-success-overlay');
         const successAppId = container.querySelector('#opf-success-app-id');
         const submitBtn = container.querySelector('#opf-submit-btn');
+
+        const ajaxUrl = (typeof orphan_form_obj !== 'undefined' && orphan_form_obj.ajax_url)
+            ? orphan_form_obj.ajax_url
+            : '/wp-admin/admin-ajax.php';
 
         // Navigation Buttons
         const nextBtns = container.querySelectorAll('.opf-btn-next');
@@ -47,7 +57,7 @@
                 }
             });
 
-            // Wizard indicators
+            // Wizard indicators & Left Sidebar steps
             stepItems.forEach(function (item) {
                 const itemStep = parseInt(item.getAttribute('data-step'), 10);
                 item.classList.remove('active');
@@ -61,8 +71,25 @@
                 }
             });
 
+            sideStepItems.forEach(function (item) {
+                const itemStep = parseInt(item.getAttribute('data-step'), 10);
+                const subEl = item.querySelector('.opf-side-step-sub');
+                item.classList.remove('active');
+                if (itemStep < step) {
+                    item.classList.add('completed');
+                    if (subEl) subEl.textContent = 'Completed';
+                } else if (itemStep === step) {
+                    item.classList.remove('completed');
+                    item.classList.add('active');
+                    if (subEl) subEl.textContent = 'Current Step';
+                } else {
+                    item.classList.remove('completed');
+                    if (subEl) subEl.textContent = 'Step ' + itemStep;
+                }
+            });
+
             // Progress bar
-            const percent = (step / totalSteps) * 100;
+            const percent = Math.round((step / totalSteps) * 100);
             if (progressBar) {
                 progressBar.style.width = percent + '%';
             }
@@ -82,6 +109,94 @@
                 container.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
+
+        // Initialize Step 1 indicator labels immediately
+        if (sideStepItems.length) {
+            const firstSub = sideStepItems[0].querySelector('.opf-side-step-sub');
+            if (firstSub) firstSub.textContent = 'Current Step';
+        }
+
+        function proceedWithStepValidation(targetStep, triggerBtn) {
+            if (!targetStep || targetStep === currentStep) return;
+
+            if (targetStep < currentStep) {
+                goToStep(targetStep);
+                return;
+            }
+
+            for (let s = currentStep; s < targetStep; s++) {
+                if (!validateStep(s)) {
+                    if (s !== currentStep) goToStep(s);
+                    return;
+                }
+            }
+
+            // If in Old Application mode and leaving Step 1, verify ID exists in DB first
+            if (appModeInput && appModeInput.value === 'old' && currentStep === 1 && oldIdInput) {
+                const enteredId = oldIdInput.value.trim();
+                const nonceEl = form.querySelector('input[name="orphan_form_nonce"]');
+                const origText = triggerBtn ? triggerBtn.textContent : '';
+                if (triggerBtn) {
+                    triggerBtn.disabled = true;
+                    triggerBtn.textContent = 'Checking ID...';
+                }
+
+                const fd = new FormData();
+                fd.append('action', 'opf_verify_old_id');
+                fd.append('nonce', nonceEl ? nonceEl.value : '');
+                fd.append('old_application_id', enteredId);
+
+                fetch(ajaxUrl, { method: 'POST', body: fd })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (triggerBtn) {
+                            triggerBtn.disabled = false;
+                            triggerBtn.textContent = origText;
+                        }
+                        if (res && res.success) {
+                            oldIdInput.classList.remove('has-error');
+                            goToStep(targetStep);
+                        } else {
+                            const msg = (res && res.data && res.data.message)
+                                ? res.data.message
+                                : 'Invalid ID. Please enter a valid ID.';
+                            oldIdInput.classList.add('has-error');
+                            if (oldIdErr) {
+                                oldIdErr.textContent = msg;
+                                oldIdErr.style.display = 'block';
+                            }
+                            oldIdInput.focus();
+                            oldIdInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            showCustomAlert('Invalid ID', 'Please enter a valid ID.', 'error');
+                        }
+                    })
+                    .catch(function () {
+                        if (triggerBtn) {
+                            triggerBtn.disabled = false;
+                            triggerBtn.textContent = origText;
+                        }
+                        showCustomAlert('Connection Error', 'Could not verify Application ID. Please try again.', 'warning');
+                    });
+                return;
+            }
+
+            goToStep(targetStep);
+        }
+
+        // Click / Keyboard handler for Left Sidebar Step Items
+        sideStepItems.forEach(function (item) {
+            function activateSideStep() {
+                const targetStep = parseInt(item.getAttribute('data-step'), 10);
+                proceedWithStepValidation(targetStep, null);
+            }
+            item.addEventListener('click', activateSideStep);
+            item.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activateSideStep();
+                }
+            });
+        });
 
         // Restore step on page reload if previously stored
         try {
@@ -106,6 +221,18 @@
             }
         } catch (e) {}
 
+        window.addEventListener('hashchange', function () {
+            try {
+                const m = window.location.hash.match(/#step-(\d+)/);
+                if (m && m[1]) {
+                    const hStep = parseInt(m[1], 10);
+                    if (hStep >= 1 && hStep <= totalSteps && hStep !== currentStep) {
+                        goToStep(hStep, false);
+                    }
+                }
+            } catch (e) {}
+        });
+
         // Validate a given step
         function validateStep(step) {
             const currentPane = container.querySelector('.opf-step-pane[data-step="' + step + '"]');
@@ -115,11 +242,24 @@
             let firstInvalidField = null;
 
             // Clear previous errors in this step
+            currentPane.querySelectorAll('.opf-img-upload-card').forEach(function (card) {
+                card.classList.remove('has-error');
+            });
+
             const inputs = currentPane.querySelectorAll('.opf-req');
             inputs.forEach(function (input) {
                 input.classList.remove('has-error');
 
-                if (input.type === 'checkbox') {
+                if (input.classList.contains('opf-image-req')) {
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        const card = input.closest('.opf-img-upload-card');
+                        if (card) {
+                            card.classList.add('has-error');
+                            if (!firstInvalidField) firstInvalidField = card;
+                        }
+                    }
+                } else if (input.type === 'checkbox') {
                     if (!input.checked) {
                         isValid = false;
                         input.classList.add('has-error');
@@ -150,7 +290,9 @@
             });
 
             if (!isValid && firstInvalidField) {
-                firstInvalidField.focus();
+                if (typeof firstInvalidField.focus === 'function') {
+                    firstInvalidField.focus();
+                }
                 firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
@@ -161,9 +303,7 @@
         nextBtns.forEach(function (btn) {
             btn.addEventListener('click', function () {
                 const targetStep = parseInt(this.getAttribute('data-next'), 10);
-                if (validateStep(currentStep)) {
-                    goToStep(targetStep);
-                }
+                proceedWithStepValidation(targetStep, this);
             });
         });
 
@@ -223,58 +363,60 @@
         });
 
         // -------------------------------------------------------------
-        // Auto Calculate Age from Date of Birth
+        // Auto Calculate Age (Years, Months, Days) from Date of Birth
         // -------------------------------------------------------------
         const dobInput = container.querySelector('.opf-dob-field');
         const ageInput = container.querySelector('.opf-age-field');
         if (dobInput && ageInput) {
-            dobInput.addEventListener('change', function () {
-                if (this.value) {
-                    const birthDate = new Date(this.value);
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const m = today.getMonth() - birthDate.getMonth();
-                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                        age--;
-                    }
-                    if (age >= 0 && age <= 100) {
-                        ageInput.value = age;
-                    }
+            function updateCalculatedAge() {
+                const val = dobInput.value;
+                if (!val) {
+                    ageInput.value = '';
+                    return;
                 }
-            });
-        }
+                const parts = val.split('-');
+                if (parts.length !== 3) return;
 
-        // -------------------------------------------------------------
-        // Father Deceased Toggle
-        // -------------------------------------------------------------
-        const fatherDeceasedChk = container.querySelector('#opf-father-deceased-chk');
-        const fatherDeceasedBox = container.querySelector('#opf-father-deceased-details');
-        if (fatherDeceasedChk && fatherDeceasedBox) {
-            fatherDeceasedChk.addEventListener('change', function () {
-                fatherDeceasedBox.style.display = this.checked ? 'grid' : 'none';
-            });
-        }
+                const birthYear = parseInt(parts[0], 10);
+                const birthMonth = parseInt(parts[1], 10) - 1;
+                const birthDay = parseInt(parts[2], 10);
+                const birthDate = new Date(birthYear, birthMonth, birthDay);
+                if (isNaN(birthDate.getTime())) return;
 
-        // -------------------------------------------------------------
-        // Mother Deceased Toggle
-        // -------------------------------------------------------------
-        const motherDeceasedChk = container.querySelector('#opf-mother-deceased-chk');
-        const motherDeceasedBox = container.querySelector('#opf-mother-deceased-details');
-        if (motherDeceasedChk && motherDeceasedBox) {
-            motherDeceasedChk.addEventListener('change', function () {
-                motherDeceasedBox.style.display = this.checked ? 'grid' : 'none';
-            });
-        }
+                const now = new Date();
+                const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                if (birthDate > todayDate) {
+                    ageInput.value = '';
+                    return;
+                }
 
-        // -------------------------------------------------------------
-        // Separate Guardian Toggle
-        // -------------------------------------------------------------
-        const guardianChk = container.querySelector('#opf-separate-guardian-chk');
-        const guardianBox = container.querySelector('#opf-guardian-details');
-        if (guardianChk && guardianBox) {
-            guardianChk.addEventListener('change', function () {
-                guardianBox.style.display = this.checked ? 'block' : 'none';
-            });
+                let years = todayDate.getFullYear() - birthYear;
+                let months = todayDate.getMonth() - birthMonth;
+                let days = todayDate.getDate() - birthDay;
+
+                if (days < 0) {
+                    months--;
+                    const prevMonthDays = new Date(todayDate.getFullYear(), todayDate.getMonth(), 0).getDate();
+                    days += prevMonthDays;
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+
+                if (years >= 0 && years <= 120) {
+                    const yLabel = years === 1 ? 'Year' : 'Years';
+                    const mLabel = months === 1 ? 'Month' : 'Months';
+                    const dLabel = days === 1 ? 'Day' : 'Days';
+                    ageInput.value = years + ' ' + yLabel + ', ' + months + ' ' + mLabel + ', ' + days + ' ' + dLabel;
+                }
+            }
+
+            dobInput.addEventListener('change', updateCalculatedAge);
+            dobInput.addEventListener('input', updateCalculatedAge);
+            if (dobInput.value) {
+                updateCalculatedAge();
+            }
         }
 
         // -------------------------------------------------------------
@@ -400,9 +542,15 @@
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Validate step 4
-            if (!validateStep(4)) {
-                return;
+            // Validate steps 1..4 cleanly before submitting
+            for (let s = 1; s <= totalSteps; s++) {
+                if (!validateStep(s)) {
+                    if (s !== currentStep) {
+                        goToStep(s, false);
+                        validateStep(s);
+                    }
+                    return;
+                }
             }
 
             // Sync signature before submit
@@ -425,6 +573,17 @@
             }
 
             const formData = new FormData(form);
+            if (typeof croppedImagesState === 'object') {
+                if (croppedImagesState.signature_image && croppedImagesState.signature_image.blob) {
+                    formData.append('signature_image_file', croppedImagesState.signature_image.blob, 'signature.png');
+                }
+                if (croppedImagesState.short_photo && croppedImagesState.short_photo.blob) {
+                    formData.append('short_photo_file', croppedImagesState.short_photo.blob, 'short_photo.jpg');
+                }
+                if (croppedImagesState.half_photo && croppedImagesState.half_photo.blob) {
+                    formData.append('half_photo_file', croppedImagesState.half_photo.blob, 'half_photo.jpg');
+                }
+            }
 
             const ajaxUrl = (typeof orphan_form_obj !== 'undefined' && orphan_form_obj.ajax_url)
                 ? orphan_form_obj.ajax_url
@@ -461,7 +620,7 @@
                     }
 
                     if (successAppId) {
-                        successAppId.textContent = res.data.application_no || 'SAP-' + Date.now();
+                        successAppId.textContent = '#' + (res.data.application_no || res.data.id);
                     }
                     if (successOverlay) {
                         successOverlay.style.display = 'flex';
@@ -474,6 +633,7 @@
                         alertBox.style.display = 'block';
                         alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
+                    showCustomAlert('Submission Error', msg, 'error');
                 }
             })
             .catch(function (err) {
@@ -524,133 +684,77 @@
         }
 
         // =========================================================
-        // Mode Switcher (Apply Online vs Upload Form)
+        // Top 2-Tab Switcher (New Application vs Old Application)
         // =========================================================
         const modeBtnOnline = container.querySelector('#opf-mode-btn-online');
         const modeBtnUpload = container.querySelector('#opf-mode-btn-upload');
-        const onlineModeContainer = container.querySelector('#opf-online-mode');
-        const uploadModeContainer = container.querySelector('#opf-upload-mode');
 
         function switchMode(mode) {
-            if (mode === 'upload') {
-                if (modeBtnUpload) modeBtnUpload.classList.add('active');
-                if (modeBtnOnline) modeBtnOnline.classList.remove('active');
-                if (onlineModeContainer) onlineModeContainer.style.display = 'none';
-                if (uploadModeContainer) uploadModeContainer.style.display = 'block';
+            if (mode === 'upload' || mode === 'old') {
+                if (modeBtnUpload) {
+                    modeBtnUpload.classList.add('active');
+                    modeBtnUpload.setAttribute('aria-selected', 'true');
+                }
+                if (modeBtnOnline) {
+                    modeBtnOnline.classList.remove('active');
+                    modeBtnOnline.setAttribute('aria-selected', 'false');
+                }
+                if (appModeInput) appModeInput.value = 'old';
+                if (oldIdWrap) oldIdWrap.style.display = 'block';
+                if (oldIdInput) {
+                    oldIdInput.classList.add('opf-req');
+                    oldIdInput.setAttribute('required', 'required');
+                }
+                if (currentStep !== 1 && (!oldIdInput || !oldIdInput.value.trim())) {
+                    goToStep(1, false);
+                }
             } else {
-                if (modeBtnOnline) modeBtnOnline.classList.add('active');
-                if (modeBtnUpload) modeBtnUpload.classList.remove('active');
-                if (uploadModeContainer) uploadModeContainer.style.display = 'none';
-                if (onlineModeContainer) onlineModeContainer.style.display = 'block';
+                if (modeBtnOnline) {
+                    modeBtnOnline.classList.add('active');
+                    modeBtnOnline.setAttribute('aria-selected', 'true');
+                }
+                if (modeBtnUpload) {
+                    modeBtnUpload.classList.remove('active');
+                    modeBtnUpload.setAttribute('aria-selected', 'false');
+                }
+                if (appModeInput) appModeInput.value = 'new';
+                if (oldIdWrap) oldIdWrap.style.display = 'none';
+                if (oldIdInput) {
+                    oldIdInput.classList.remove('opf-req', 'has-error');
+                    oldIdInput.removeAttribute('required');
+                }
+                if (oldIdErr) {
+                    oldIdErr.style.display = '';
+                }
             }
         }
 
         if (modeBtnOnline) {
             modeBtnOnline.addEventListener('click', function () {
-                switchMode('online');
+                switchMode('new');
             });
         }
 
         if (modeBtnUpload) {
             modeBtnUpload.addEventListener('click', function () {
-                switchMode('upload');
+                switchMode('old');
             });
         }
 
-        // Applicant Type Switcher (New vs Existing)
-        const optCardNew = container.querySelector('#opf-type-opt-new');
-        const optCardExisting = container.querySelector('#opf-type-opt-existing');
-        const fieldsNew = container.querySelector('#opf-upload-fields-new');
-        const fieldsExisting = container.querySelector('#opf-upload-fields-existing');
-        const radioTypeInputs = container.querySelectorAll('input[name="applicant_type"]');
+        // Auto-switch mode or pre-fill from URL query / hash
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const opfMode = urlParams.get('opf_mode') || (window.location.hash === '#old' || window.location.hash === '#upload' ? 'old' : null);
+            const prefillAppId = urlParams.get('app_id');
 
-        radioTypeInputs.forEach(function (radio) {
-            radio.addEventListener('change', function () {
-                if (this.value === 'existing') {
-                    if (optCardExisting) optCardExisting.classList.add('active');
-                    if (optCardNew) optCardNew.classList.remove('active');
-                    if (fieldsExisting) fieldsExisting.style.display = 'block';
-                    if (fieldsNew) fieldsNew.style.display = 'none';
-                } else {
-                    if (optCardNew) optCardNew.classList.add('active');
-                    if (optCardExisting) optCardExisting.classList.remove('active');
-                    if (fieldsNew) fieldsNew.style.display = 'block';
-                    if (fieldsExisting) fieldsExisting.style.display = 'none';
+            if (opfMode === 'upload' || opfMode === 'old') {
+                switchMode('old');
+
+                if (prefillAppId && oldIdInput) {
+                    oldIdInput.value = prefillAppId;
                 }
-            });
-        });
-
-        // File Dropzone & Preview Handling
-        const dropzoneArea = container.querySelector('#opf-dropzone-area');
-        const fileInput = container.querySelector('#opf-upload-file-input');
-        const dropzonePlaceholder = container.querySelector('#opf-dropzone-placeholder');
-        const fileSelectedCard = container.querySelector('#opf-file-selected-card');
-        const fileNameEl = container.querySelector('#opf-selected-file-name');
-        const fileSizeEl = container.querySelector('#opf-selected-file-size');
-        const clearFileBtn = container.querySelector('#opf-btn-clear-file');
-        const fileErrEl = container.querySelector('#opf-upload-file-err');
-
-        function formatBytes(bytes) {
-            if (!bytes || bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function updateFilePreview(file) {
-            if (file) {
-                if (fileNameEl) fileNameEl.textContent = file.name;
-                if (fileSizeEl) fileSizeEl.textContent = formatBytes(file.size);
-                if (dropzonePlaceholder) dropzonePlaceholder.style.display = 'none';
-                if (fileSelectedCard) fileSelectedCard.style.display = 'flex';
-                if (fileErrEl) fileErrEl.style.display = 'none';
-            } else {
-                if (fileInput) fileInput.value = '';
-                if (dropzonePlaceholder) dropzonePlaceholder.style.display = 'flex';
-                if (fileSelectedCard) fileSelectedCard.style.display = 'none';
             }
-        }
-
-        if (fileInput) {
-            fileInput.addEventListener('change', function () {
-                if (this.files && this.files[0]) {
-                    updateFilePreview(this.files[0]);
-                }
-            });
-        }
-
-        if (clearFileBtn) {
-            clearFileBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                updateFilePreview(null);
-            });
-        }
-
-        if (dropzoneArea) {
-            ['dragenter', 'dragover'].forEach(function (eventName) {
-                dropzoneArea.addEventListener(eventName, function (e) {
-                    e.preventDefault();
-                    dropzoneArea.classList.add('dragover');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(function (eventName) {
-                dropzoneArea.addEventListener(eventName, function (e) {
-                    e.preventDefault();
-                    dropzoneArea.classList.remove('dragover');
-                }, false);
-            });
-
-            dropzoneArea.addEventListener('drop', function (e) {
-                const dt = e.dataTransfer;
-                if (dt && dt.files && dt.files.length) {
-                    fileInput.files = dt.files;
-                    updateFilePreview(dt.files[0]);
-                }
-            }, false);
-        }
+        } catch (e) {}
 
         // =========================================================
         // Custom Centered Modal Alert
@@ -710,137 +814,377 @@
             }
         });
 
-        // Upload Form AJAX Submission
-        const uploadForm = container.querySelector('#opf-upload-form');
-        const uploadSubmitBtn = container.querySelector('#opf-upload-btn-submit');
-        const uploadSuccessView = container.querySelector('#opf-upload-success-view');
-        const uploadSuccessId = container.querySelector('#opf-upload-success-id');
-        const uploadSuccessFileLink = container.querySelector('#opf-upload-success-link');
-        const uploadResetBtn = container.querySelector('#opf-upload-reset-btn');
+        // =========================================================
+        // Step 5: Built-In Canvas Image Upload + Interactive Cropper
+        // =========================================================
+        const croppedImagesState = {
+            signature_image: { img: null, blob: null, rotation: 0 },
+            short_photo: { img: null, blob: null, rotation: 0 },
+            half_photo: { img: null, blob: null, rotation: 0 }
+        };
 
-        if (uploadForm) {
-            uploadForm.addEventListener('submit', function (e) {
-                e.preventDefault();
+        const cropModal = document.getElementById('opf-crop-modal');
+        if (cropModal && cropModal.parentElement !== document.body) {
+            document.body.appendChild(cropModal);
+        }
 
-                // Clear previous errors
-                uploadForm.querySelectorAll('.opf-err-msg').forEach(function (el) {
-                    el.style.display = 'none';
-                });
-                uploadForm.querySelectorAll('.opf-has-err').forEach(function (el) {
-                    el.classList.remove('opf-has-err');
-                });
+        const cropModalTitle = cropModal ? cropModal.querySelector('#opf-crop-modal-title') : null;
+        const cropCanvas = cropModal ? cropModal.querySelector('#opf-crop-canvas') : null;
+        const cropBox = cropModal ? cropModal.querySelector('#opf-crop-box') : null;
+        const cropCloseBtn = cropModal ? cropModal.querySelector('#opf-crop-close') : null;
+        const cropCancelBtn = cropModal ? cropModal.querySelector('#opf-crop-cancel-btn') : null;
+        const cropSaveBtn = cropModal ? cropModal.querySelector('#opf-crop-save-btn') : null;
+        const cropRotateBtn = cropModal ? cropModal.querySelector('#opf-crop-rotate-btn') : null;
+        const cropResetBtn = cropModal ? cropModal.querySelector('#opf-crop-reset-btn') : null;
+        const cropRatioLockBtn = cropModal ? cropModal.querySelector('#opf-crop-ratio-lock') : null;
+        const cropRatioFreeBtn = cropModal ? cropModal.querySelector('#opf-crop-ratio-free') : null;
 
-                let hasError = false;
-                const checkedRadio = uploadForm.querySelector('input[name="applicant_type"]:checked');
-                const applicantType = checkedRadio ? checkedRadio.value : 'new';
+        let activeCropField = null;
+        let activeCropAspect = null;
+        let lockAspect = true;
+        let rotCanvas = null; // Holds full-resolution rotated source canvas
+        let dispW = 0;
+        let dispH = 0;
+        let boxRect = { x: 0, y: 0, w: 100, h: 100 };
 
-                function markFieldErr(input) {
-                    if (!input) return;
-                    input.classList.add('opf-has-err');
-                    const err = input.parentElement ? input.parentElement.querySelector('.opf-err-msg') : null;
-                    if (err) err.style.display = 'block';
-                }
+        function syncCropBoxDOM() {
+            if (!cropBox) return;
+            cropBox.style.left = boxRect.x + 'px';
+            cropBox.style.top = boxRect.y + 'px';
+            cropBox.style.width = boxRect.w + 'px';
+            cropBox.style.height = boxRect.h + 'px';
+        }
 
-                if (applicantType === 'existing') {
-                    const lookupInput = uploadForm.querySelector('input[name="existing_app_lookup"]');
-                    const nameInput = uploadForm.querySelector('input[name="existing_student_name"]');
-                    const mobileInput = uploadForm.querySelector('input[name="existing_mobile"]');
+        function resetCropBoxToDefault() {
+            if (!dispW || !dispH) return;
+            let targetW = dispW * 0.85;
+            let targetH = dispH * 0.85;
 
-                    if (!lookupInput || !lookupInput.value.trim()) { markFieldErr(lookupInput); hasError = true; }
-                    if (!nameInput || !nameInput.value.trim()) { markFieldErr(nameInput); hasError = true; }
-                    if (!mobileInput || !mobileInput.value.trim() || mobileInput.value.trim().length < 9) { markFieldErr(mobileInput); hasError = true; }
+            if (lockAspect && activeCropAspect) {
+                if (targetW / activeCropAspect <= dispH * 0.9) {
+                    targetH = targetW / activeCropAspect;
                 } else {
-                    const fnInput = uploadForm.querySelector('input[name="student_first_name"]');
-                    const snInput = uploadForm.querySelector('input[name="student_surname"]');
-                    const mobInput = uploadForm.querySelector('input[name="student_mobile"]');
-                    const brInput = uploadForm.querySelector('input[name="birth_registration_number"]');
-                    const distInput = uploadForm.querySelector('input[name="district"]');
-
-                    if (!fnInput || !fnInput.value.trim()) { markFieldErr(fnInput); hasError = true; }
-                    if (!snInput || !snInput.value.trim()) { markFieldErr(snInput); hasError = true; }
-                    if (!mobInput || !mobInput.value.trim() || mobInput.value.trim().length < 9) { markFieldErr(mobInput); hasError = true; }
-                    if (!brInput || !brInput.value.trim() || brInput.value.trim().length < 10) { markFieldErr(brInput); hasError = true; }
-                    if (!distInput || !distInput.value.trim()) { markFieldErr(distInput); hasError = true; }
+                    targetH = dispH * 0.85;
+                    targetW = targetH * activeCropAspect;
                 }
+            }
 
-                // Check file selected
-                if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-                    if (fileErrEl) fileErrEl.style.display = 'block';
-                    hasError = true;
+            targetW = Math.max(40, Math.min(dispW, targetW));
+            targetH = Math.max(30, Math.min(dispH, targetH));
+
+            boxRect = {
+                x: Math.round((dispW - targetW) / 2),
+                y: Math.round((dispH - targetH) / 2),
+                w: Math.round(targetW),
+                h: Math.round(targetH)
+            };
+            syncCropBoxDOM();
+        }
+
+        function renderCropStage() {
+            if (!cropCanvas || !activeCropField || !croppedImagesState[activeCropField].img) return;
+            const entry = croppedImagesState[activeCropField];
+            const srcImg = entry.img;
+            const rot = entry.rotation % 360;
+
+            const rw = (rot === 90 || rot === 270) ? srcImg.naturalHeight : srcImg.naturalWidth;
+            const rh = (rot === 90 || rot === 270) ? srcImg.naturalWidth : srcImg.naturalHeight;
+
+            rotCanvas = document.createElement('canvas');
+            rotCanvas.width = rw;
+            rotCanvas.height = rh;
+            const rCtx = rotCanvas.getContext('2d');
+            rCtx.save();
+            rCtx.translate(rw / 2, rh / 2);
+            rCtx.rotate((rot * Math.PI) / 180);
+            rCtx.drawImage(srcImg, -srcImg.naturalWidth / 2, -srcImg.naturalHeight / 2);
+            rCtx.restore();
+
+            const maxStageW = Math.min(520, window.innerWidth - 70);
+            const maxStageH = Math.min(360, Math.round(window.innerHeight * 0.52));
+            const scale = Math.min(maxStageW / rw, maxStageH / rh, 1);
+
+            dispW = Math.max(80, Math.round(rw * scale));
+            dispH = Math.max(60, Math.round(rh * scale));
+
+            cropCanvas.width = dispW;
+            cropCanvas.height = dispH;
+            const cCtx = cropCanvas.getContext('2d');
+            cCtx.clearRect(0, 0, dispW, dispH);
+            cCtx.drawImage(rotCanvas, 0, 0, dispW, dispH);
+
+            resetCropBoxToDefault();
+        }
+
+        function openCropperModal(fieldKey) {
+            if (!cropModal || !croppedImagesState[fieldKey] || !croppedImagesState[fieldKey].img) return;
+            const card = container.querySelector('.opf-img-upload-card[data-field="' + fieldKey + '"]');
+            const aspectStr = card ? card.getAttribute('data-aspect') : '';
+            const cardTitle = card ? card.getAttribute('data-title') : 'Image';
+
+            activeCropField = fieldKey;
+            activeCropAspect = aspectStr ? parseFloat(aspectStr) : null;
+            lockAspect = !!activeCropAspect;
+
+            if (cropRatioLockBtn) cropRatioLockBtn.classList.toggle('active', lockAspect);
+            if (cropRatioFreeBtn) cropRatioFreeBtn.classList.toggle('active', !lockAspect);
+            if (cropModalTitle) cropModalTitle.textContent = 'Crop ' + cardTitle;
+
+            cropModal.style.display = 'flex';
+            cropModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            renderCropStage();
+        }
+
+        function closeCropperModal() {
+            if (!cropModal) return;
+            cropModal.classList.remove('show');
+            cropModal.style.display = 'none';
+            document.body.style.overflow = '';
+            activeCropField = null;
+        }
+
+        // Aspect toggle, Rotate, Reset buttons
+        if (cropRatioLockBtn) {
+            cropRatioLockBtn.addEventListener('click', function () {
+                lockAspect = true;
+                cropRatioLockBtn.classList.add('active');
+                if (cropRatioFreeBtn) cropRatioFreeBtn.classList.remove('active');
+                resetCropBoxToDefault();
+            });
+        }
+        if (cropRatioFreeBtn) {
+            cropRatioFreeBtn.addEventListener('click', function () {
+                lockAspect = false;
+                cropRatioFreeBtn.classList.add('active');
+                if (cropRatioLockBtn) cropRatioLockBtn.classList.remove('active');
+            });
+        }
+        if (cropRotateBtn) {
+            cropRotateBtn.addEventListener('click', function () {
+                if (!activeCropField || !croppedImagesState[activeCropField]) return;
+                croppedImagesState[activeCropField].rotation = (croppedImagesState[activeCropField].rotation + 90) % 360;
+                renderCropStage();
+            });
+        }
+        if (cropResetBtn) {
+            cropResetBtn.addEventListener('click', resetCropBoxToDefault);
+        }
+        if (cropCloseBtn) cropCloseBtn.addEventListener('click', closeCropperModal);
+        if (cropCancelBtn) cropCancelBtn.addEventListener('click', closeCropperModal);
+
+        // Pointer drag (move & corner resize) inside Crop Stage
+        if (cropBox) {
+            let dragMode = null;
+            let startX = 0;
+            let startY = 0;
+            let startRect = null;
+
+            function getClientPoint(e) {
+                if (e.touches && e.touches.length) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
                 }
+                return { x: e.clientX, y: e.clientY };
+            }
 
-                if (hasError) {
-                    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-                        showCustomAlert('Document Required', 'Please choose or drag & drop a PDF or image of your completed application form.', 'warning');
+            function onPointerDown(e) {
+                e.preventDefault();
+                const pt = getClientPoint(e);
+                const handleEl = e.target.closest('.opf-crop-handle');
+                dragMode = handleEl ? handleEl.getAttribute('data-handle') : 'move';
+                startX = pt.x;
+                startY = pt.y;
+                startRect = Object.assign({}, boxRect);
+            }
+
+            function onPointerMove(e) {
+                if (!dragMode || !startRect) return;
+                const pt = getClientPoint(e);
+                const dx = pt.x - startX;
+                const dy = pt.y - startY;
+                const minSize = 32;
+
+                if (dragMode === 'move') {
+                    boxRect.x = Math.max(0, Math.min(dispW - startRect.w, Math.round(startRect.x + dx)));
+                    boxRect.y = Math.max(0, Math.min(dispH - startRect.h, Math.round(startRect.y + dy)));
+                } else {
+                    let nx = startRect.x;
+                    let ny = startRect.y;
+                    let nw = startRect.w;
+                    let nh = startRect.h;
+
+                    if (dragMode.indexOf('e') !== -1) nw = startRect.w + dx;
+                    if (dragMode.indexOf('s') !== -1) nh = startRect.h + dy;
+                    if (dragMode.indexOf('w') !== -1) { nw = startRect.w - dx; nx = startRect.x + dx; }
+                    if (dragMode.indexOf('n') !== -1) { nh = startRect.h - dy; ny = startRect.y + dy; }
+
+                    nw = Math.max(minSize, nw);
+                    nh = Math.max(minSize, nh);
+
+                    if (lockAspect && activeCropAspect) {
+                        nh = nw / activeCropAspect;
+                        if (dragMode.indexOf('n') !== -1) {
+                            ny = startRect.y + (startRect.h - nh);
+                        }
                     }
-                    return;
+
+                    // Keep within canvas bounds
+                    if (nx < 0) { nw += nx; nx = 0; }
+                    if (ny < 0) { nh += ny; ny = 0; }
+                    if (nx + nw > dispW) nw = dispW - nx;
+                    if (ny + nh > dispH) nh = dispH - ny;
+
+                    if (lockAspect && activeCropAspect) {
+                        if (nw / activeCropAspect > nh) nw = nh * activeCropAspect;
+                        else nh = nw / activeCropAspect;
+                    }
+
+                    if (nw >= minSize && nh >= 24) {
+                        boxRect = { x: Math.round(nx), y: Math.round(ny), w: Math.round(nw), h: Math.round(nh) };
+                    }
+                }
+                syncCropBoxDOM();
+            }
+
+            function onPointerUp() {
+                dragMode = null;
+                startRect = null;
+            }
+
+            cropBox.addEventListener('mousedown', onPointerDown);
+            cropBox.addEventListener('touchstart', onPointerDown, { passive: false });
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('touchmove', onPointerMove, { passive: false });
+            window.addEventListener('mouseup', onPointerUp);
+            window.addEventListener('touchend', onPointerUp);
+        }
+
+        // Save cropped region -> render high-res Blob & update card preview
+        if (cropSaveBtn) {
+            cropSaveBtn.addEventListener('click', function () {
+                if (!activeCropField || !rotCanvas || !dispW || !dispH) return;
+                const fieldKey = activeCropField;
+                const scaleX = rotCanvas.width / dispW;
+                const scaleY = rotCanvas.height / dispH;
+
+                const srcX = Math.max(0, Math.round(boxRect.x * scaleX));
+                const srcY = Math.max(0, Math.round(boxRect.y * scaleY));
+                const srcW = Math.max(1, Math.min(rotCanvas.width - srcX, Math.round(boxRect.w * scaleX)));
+                const srcH = Math.max(1, Math.min(rotCanvas.height - srcY, Math.round(boxRect.h * scaleY)));
+
+                const maxOutW = fieldKey === 'signature_image' ? 900 : 1000;
+                const outScale = Math.min(1, maxOutW / srcW);
+                const outW = Math.max(1, Math.round(srcW * outScale));
+                const outH = Math.max(1, Math.round(srcH * outScale));
+
+                const outCanvas = document.createElement('canvas');
+                outCanvas.width = outW;
+                outCanvas.height = outH;
+                const oCtx = outCanvas.getContext('2d');
+                oCtx.fillStyle = '#ffffff';
+                oCtx.fillRect(0, 0, outW, outH);
+                oCtx.drawImage(rotCanvas, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+
+                const isSig = (fieldKey === 'signature_image');
+                const mime = isSig ? 'image/png' : 'image/jpeg';
+                const quality = isSig ? undefined : 0.9;
+                const dataUrlPreview = outCanvas.toDataURL(mime, quality);
+
+                function finalizeSave(blob) {
+                    croppedImagesState[fieldKey].blob = blob;
+
+                    const card = container.querySelector('.opf-img-upload-card[data-field="' + fieldKey + '"]');
+                    if (card) {
+                        card.classList.remove('has-error');
+                        const picker = card.querySelector('.opf-img-picker-btn');
+                        const prevWrap = card.querySelector('.opf-img-preview-wrap');
+                        const prevImg = card.querySelector('#opf-preview-' + fieldKey);
+                        const stateInput = card.querySelector('#opf-state-' + fieldKey);
+
+                        if (prevImg) prevImg.src = dataUrlPreview;
+                        if (picker) picker.style.display = 'none';
+                        if (prevWrap) prevWrap.style.display = 'flex';
+                        if (stateInput) stateInput.value = 'ready';
+                    }
+                    closeCropperModal();
                 }
 
-                const formData = new FormData(uploadForm);
-                const btnContent = uploadSubmitBtn ? uploadSubmitBtn.querySelector('.opf-btn-text-content') : null;
-                const spinner = uploadSubmitBtn ? uploadSubmitBtn.querySelector('.opf-spinner') : null;
-                const originalBtnHtml = btnContent ? btnContent.innerHTML : '';
-
-                if (uploadSubmitBtn) {
-                    uploadSubmitBtn.disabled = true;
-                    if (btnContent) btnContent.textContent = 'Uploading Form...';
-                    if (spinner) spinner.style.display = 'inline-block';
+                if (outCanvas.toBlob) {
+                    outCanvas.toBlob(function (blob) {
+                        if (blob) {
+                            finalizeSave(blob);
+                        }
+                    }, mime, quality);
+                } else {
+                    const byteStr = atob(dataUrlPreview.split(',')[1]);
+                    const arr = new Uint8Array(byteStr.length);
+                    for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+                    finalizeSave(new Blob([arr], { type: mime }));
                 }
-
-                fetch(orphan_form_obj.ajax_url, {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(function (res) { return res.json(); })
-                    .then(function (data) {
-                        if (uploadSubmitBtn) {
-                            uploadSubmitBtn.disabled = false;
-                            if (btnContent) btnContent.innerHTML = originalBtnHtml;
-                            if (spinner) spinner.style.display = 'none';
-                        }
-
-                        if (data.success) {
-                            uploadForm.style.display = 'none';
-                            if (uploadSuccessView) uploadSuccessView.style.display = 'flex';
-                            if (uploadSuccessId) uploadSuccessId.textContent = '#' + (data.data.id || data.data.application_no);
-                            if (uploadSuccessFileLink && data.data.file_url) {
-                                uploadSuccessFileLink.href = data.data.file_url;
-                            }
-                        } else {
-                            showCustomAlert(
-                                'Application Not Found',
-                                data.data && data.data.message ? data.data.message : 'Invalid details provided. Please check your information or select "New Applicant".',
-                                'error'
-                            );
-                        }
-                    })
-                    .catch(function (err) {
-                        if (uploadSubmitBtn) {
-                            uploadSubmitBtn.disabled = false;
-                            if (btnContent) btnContent.innerHTML = originalBtnHtml;
-                            if (spinner) spinner.style.display = 'none';
-                        }
-                        showCustomAlert(
-                            'Connection Error',
-                            'Network error during upload. Please check your internet connection and try again.',
-                            'warning'
-                        );
-                        console.error('Upload error:', err);
-                    });
             });
         }
 
-        if (uploadResetBtn) {
-            uploadResetBtn.addEventListener('click', function () {
-                if (uploadForm) {
-                    uploadForm.reset();
-                    updateFilePreview(null);
-                    uploadForm.style.display = 'block';
-                }
-                if (uploadSuccessView) {
-                    uploadSuccessView.style.display = 'none';
-                }
+        // Bind card picker / file input / recrop / remove actions across all 3 cards
+        container.querySelectorAll('.opf-img-upload-card').forEach(function (card) {
+            const fieldKey = card.getAttribute('data-field');
+            const fileInput = card.querySelector('#opf-file-' + fieldKey);
+            const stateInput = card.querySelector('#opf-state-' + fieldKey);
+            const picker = card.querySelector('.opf-img-picker-btn');
+            const prevWrap = card.querySelector('.opf-img-preview-wrap');
+            const prevImg = card.querySelector('#opf-preview-' + fieldKey);
+
+            card.querySelectorAll('[data-trigger-file]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    if (fileInput) {
+                        fileInput.value = '';
+                        fileInput.click();
+                    }
+                });
             });
-        }
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    const file = this.files && this.files[0];
+                    if (!file) return;
+                    if (!file.type || file.type.indexOf('image/') !== 0) {
+                        showCustomAlert('Invalid File', 'Please select a valid JPG or PNG image file.', 'warning');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function (ev) {
+                        const img = new Image();
+                        img.onload = function () {
+                            croppedImagesState[fieldKey].img = img;
+                            croppedImagesState[fieldKey].rotation = 0;
+                            openCropperModal(fieldKey);
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const recropBtn = card.querySelector('[data-recrop]');
+            if (recropBtn) {
+                recropBtn.addEventListener('click', function () {
+                    if (croppedImagesState[fieldKey].img) {
+                        openCropperModal(fieldKey);
+                    }
+                });
+            }
+
+            const removeBtn = card.querySelector('[data-remove-img]');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function () {
+                    croppedImagesState[fieldKey] = { img: null, blob: null, rotation: 0 };
+                    if (stateInput) stateInput.value = '';
+                    if (prevImg) prevImg.src = '';
+                    if (prevWrap) prevWrap.style.display = 'none';
+                    if (picker) picker.style.display = 'flex';
+                    if (fileInput) fileInput.value = '';
+                });
+            }
+        });
     }
 })();
