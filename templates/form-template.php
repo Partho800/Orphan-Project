@@ -94,7 +94,7 @@ $right_logo_url = OPF_PLUGIN_URL . 'assets/images/logo-hasene.png';
         </div>
     </div>
 
-    <!-- Top 2-Tab Navigation Bar (New Application & Old Application) -->
+    <!-- Top 2-Tab Navigation Bar (New Application & Old Applicant) -->
     <div class="opf-action-modes-bar opf-main-tabs-bar" role="tablist">
         <button type="button" role="tab" aria-selected="true" class="opf-main-tab active" id="opf-mode-btn-online" data-target="opf-online-mode">
             <div class="opf-type-text">
@@ -105,7 +105,7 @@ $right_logo_url = OPF_PLUGIN_URL . 'assets/images/logo-hasene.png';
 
         <button type="button" role="tab" aria-selected="false" class="opf-main-tab" id="opf-mode-btn-upload" data-target="opf-old-mode">
             <div class="opf-type-text">
-                <strong class="opf-type-title">Old Application</strong>
+                <strong class="opf-type-title">Old Applicant</strong>
                 <span class="opf-type-desc">Update existing application with your ID</span>
             </div>
         </button>
@@ -134,7 +134,7 @@ $right_logo_url = OPF_PLUGIN_URL . 'assets/images/logo-hasene.png';
                 </div>
             </div>
 
-            <!-- Extra Required ID Field shown only in Old Application mode -->
+            <!-- Extra Required ID Field shown only in Old Applicant mode -->
             <div id="opf-old-id-field-wrap" class="opf-old-id-wrap" style="display: none;">
                 <div class="opf-field-group">
                     <label class="opf-label required">ID</label>

@@ -956,7 +956,7 @@
                         }
                         updateOldSelectionState();
                         if (oldTbody && oldTbody.querySelectorAll('.opf-old-id-row').length === 0) {
-                            oldTbody.innerHTML = '<tr class="opf-row-empty"><td colspan="8"><div class="opf-empty-state"><p class="opf-empty-title">No Old Application IDs found</p><p class="opf-empty-desc">Add IDs manually or upload an Excel/CSV file above.</p></div></td></tr>';
+                            oldTbody.innerHTML = '<tr class="opf-row-empty"><td colspan="8"><div class="opf-empty-state"><p class="opf-empty-title">No Old Applicant IDs found</p><p class="opf-empty-desc">Add IDs manually or upload an Excel/CSV file above.</p></div></td></tr>';
                         }
                         showToast((res.data && res.data.message) || 'Old ID(s) deleted!');
                     } else {

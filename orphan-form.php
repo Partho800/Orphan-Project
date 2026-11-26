@@ -389,7 +389,7 @@ function opf_handle_ajax_submission() {
         $match      = opf_resolve_old_application_id($raw_old_id);
 
         if (!$match['valid_input']) {
-            wp_send_json_error(['message' => 'Application ID is required for Old Application.']);
+            wp_send_json_error(['message' => 'Application ID is required for Old Applicant.']);
         }
 
         if (!$match['matched']) {

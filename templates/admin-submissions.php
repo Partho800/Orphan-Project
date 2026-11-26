@@ -605,11 +605,11 @@ $opf_render_pagination = function($current_page, $total_items, $per_page_limit) 
                             <div class="opf-empty-state">
                                 <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="13" y2="13"></line></svg>
                                 <?php if ($old_filter === 'submitted') : ?>
-                                    <p class="opf-empty-title">No submitted Old Applications yet</p>
+                                    <p class="opf-empty-title">No submitted Old Applicants yet</p>
                                     <p class="opf-empty-desc">Once applicants submit the form using an Old ID, their records will appear here. Click <strong>All IDs</strong> to view all uploaded IDs.</p>
                                 <?php else : ?>
-                                    <p class="opf-empty-title">No Old Application IDs found</p>
-                                    <p class="opf-empty-desc">Add IDs manually or upload an Excel/CSV file above so applicants can match them on the Old Application form.</p>
+                                    <p class="opf-empty-title">No Old Applicant IDs found</p>
+                                    <p class="opf-empty-desc">Add IDs manually or upload an Excel/CSV file above so applicants can match them on the Old Applicant form.</p>
                                 <?php endif; ?>
                             </div>
                         </td>
